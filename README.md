@@ -1,0 +1,1 @@
+Kafka and Zookeeper Kubernetes manifests for simple deployment. No HA or failover.

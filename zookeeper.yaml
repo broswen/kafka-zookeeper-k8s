@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-nodeport
+  namespace: zookeeper
+spec:
+  selector:
+    app: zookeeper
+  type: NodePort
+  ports:
+  - nodePort: 30003
+    port: 2181
+    targetPort: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-clusterip
+  namespace: zookeeper
+spec:
+  selector:
+    app: zookeeper
+  ports:
+  - port: 2181
+    targetPort: 2181
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper-deployment
+  namespace: zookeeper
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+      - name: zookeeper
+        image: bitnami/zookeeper:latest
+        env:
+          - name: ALLOW_ANONYMOUS_LOGIN
+            value: "yes"
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 500m
+        ports:
+        - containerPort: 2181
+        volumeMounts:
+        - name: zookeeper-storage
+          mountPath: /bitnami/zookeeper
+      volumes:
+      - name: zookeeper-storage
+        persistentVolumeClaim:
+          claimName: zookeeper-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-pvc
+  namespace: zookeeper
+spec:
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: zookeeper-pv
+  namespace: zookeeper
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  hostPath:
+    path: "/mnt/storage/zookeeper"
