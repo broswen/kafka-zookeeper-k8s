@@ -58,7 +58,7 @@ spec:
         - containerPort: 9093
         volumeMounts:
         - name: kafka-storage
-          mountPath: /mnt/storage/kafka
+          mountPath: /bitnami/kafka
       volumes:
       - name: kafka-storage
         persistentVolumeClaim:
